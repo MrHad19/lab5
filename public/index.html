@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Аккумулятори</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container-fluid">
+        <h2 class="text-uppercase text-center mt-3">Аккумулятори</h2>
+    <form name="akbForm">
+        <input type="hidden" name="id" value="0" />
+        <div class="form-group">
+            <label for="maker">Виробник:</label>
+            <input class="form-control" name="maker" />
+        </div>
+        <div class="form-group">
+            <label for="type">Тип:</label>
+            <input class="form-control" name="type" />
+        </div>
+        <div class="form-group">
+            <label for="volt">Ампер-години:</label>
+            <input class="form-control" name="amp_hours" />
+        </div>
+        <div class="form-group">
+            <label for="volt">Вольтаж:</label>
+            <input class="form-control" name="volt" />
+        </div>
+        <div class="form-group">
+            <label for="volt">Ціна:</label>
+            <input class="form-control" name="price" />
+        </div>
+        <div class="panel-body">
+            <div class="form-row">
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-sm btn-outline-success col-md-12">Зберегти</button>
+                </div>
+                <div class="col-md-6">
+                    <a id="reset" class="btn btn-sm btn-outline-warning col-md-12">Скинути</a>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+    <table class="table table-bordered table-hover table-responsive-sm mt-3">
+        <thead class="table-primary">
+            <tr>
+                <th>Id</th>
+                <th>Виробник</th>
+                <th>Тип</th>
+                <th>Ампер-години</th>
+                <th>Вольтаж</th>
+                <th>Ціна</th>
+                <th>Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    </div>
+   
+    <script>
+        async function GetAkbs() {
+            const response = await fetch("/api/akbs", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const akbs = await response.json();
+                let rows = document.querySelector("tbody"); 
+                akbs.forEach(akb => {
+                    rows.append(row(akb));
+                });
+            }
+        }
+        async function GetAkb(id) {
+            const response = await fetch("/api/akbs/" + id, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const akb = await response.json();
+                const form = document.forms["akbForm"];
+                form.elements["id"].value = akb._id;
+                form.elements["maker"].value = akb.maker;
+                form.elements["type"].value = akb.type;
+                form.elements["amp_hours"].value = akb.amp_hours;
+                form.elements["volt"].value = akb.volt;
+                form.elements["price"].value = akb.price;
+            }
+        }
+        async function CreateAkb(akbMaker, akbType, akbAmpHours, akbVolt, akbPrice) {
+  
+            const response = await fetch("api/akbs", {
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    maker: akbMaker,
+                    type: akbType,
+                    amp_hours: parseInt(akbAmpHours, 10),
+                    volt: parseInt(akbVolt, 10),
+                    price: parseInt(akbPrice, 10)
+                })
+            });
+            if (response.ok === true) {
+                const akb = await response.json();
+                reset();
+                document.querySelector("tbody").append(row(akb));
+            }
+        }
+        async function EditAkb(akbId, akbMaker, akbType, akbAmpHours, akbVolt, akbPrice) {
+            const response = await fetch("api/akbs", {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: akbId,
+                    maker: akbMaker,
+                    type: akbType,
+                    amp_hours: parseInt(akbAmpHours, 10),
+                    volt: parseInt(akbVolt, 10),
+                    price: parseInt(akbPrice, 10)
+                })
+            });
+            if (response.ok === true) {
+                const akb = await response.json();
+                reset();
+                document.querySelector("tr[data-rowid='" + akb._id + "']").replaceWith(row(akb));
+            }
+        }
+        async function DeleteAkb(id) {
+            const response = await fetch("/api/akbs/" + id, {
+                method: "DELETE",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const akb = await response.json();
+                document.querySelector("tr[data-rowid='" + akb._id + "']").remove();
+            }
+        }
+  
+        function reset() {
+            const form = document.forms["akbForm"];
+            form.reset();
+            form.elements["id"].value = 0;
+        }
+
+        function row(akb) {
+  
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", akb._id);
+  
+            const idTd = document.createElement("td");
+            idTd.append(akb._id);
+            tr.append(idTd);
+  
+            const makerTd = document.createElement("td");
+            makerTd.append(akb.maker);
+            tr.append(makerTd);
+
+            const typeTd = document.createElement("td");
+            typeTd.append(akb.type);
+            tr.append(typeTd);
+  
+            const amp_hoursTd = document.createElement("td");
+            amp_hoursTd.append(akb.amp_hours);
+            tr.append(amp_hoursTd);
+
+            const voltTd = document.createElement("td");
+            voltTd.append(akb.volt);
+            tr.append(voltTd);
+
+            const priceTd = document.createElement("td");
+            priceTd.append(akb.price);
+            tr.append(priceTd);
+              
+            const linksTd = document.createElement("td");
+  
+            const editLink = document.createElement("a");
+            editLink.setAttribute("data-id", akb._id);
+            editLink.setAttribute("style", "cursor:pointer;padding:15px;");
+            editLink.append("Редагувати");
+            editLink.addEventListener("click", e => {
+  
+                e.preventDefault();
+                GetAkb(akb._id);
+            });
+            linksTd.append(editLink);
+  
+            const removeLink = document.createElement("a");
+            removeLink.setAttribute("data-id", akb._id);
+            removeLink.setAttribute("style", "cursor:pointer;padding:15px;");
+            removeLink.append("Видалити");
+            removeLink.addEventListener("click", e => {
+  
+                e.preventDefault();
+                DeleteAkb(akb._id);
+            });
+  
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+  
+            return tr;
+        }
+        document.getElementById("reset").addEventListener("click", function (e) {
+            e.preventDefault();
+            reset();
+        })
+  
+        document.forms["akbForm"].addEventListener("submit", e => {
+            e.preventDefault();
+            const form = document.forms["akbForm"];
+            const id = form.elements["id"].value;
+            const maker = form.elements["maker"].value;
+            const type = form.elements["type"].value;
+            const amp_hours = form.elements["amp_hours"].value;
+            const volt = form.elements["volt"].value;
+            const price = form.elements["price"].value;
+            if (id == 0)
+                CreateAkb(maker, type, amp_hours, volt, price);
+            else
+                EditAkb(id, maker, type, amp_hours, volt, price);
+        });
+  
+        GetAkbs();
+    </script>
+</body>
+</html>
